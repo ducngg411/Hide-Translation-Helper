@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Danh sách từ hay quên</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #ffffff;
+      min-height: 100vh;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      min-height: 100vh;
+    }
+    
+    .header {
+      background: #000000;
+      color: white;
+      padding: 24px 30px;
+      border-bottom: 2px solid #333;
+    }
+    
+    .header h1 {
+      font-size: 24px;
+      margin: 0;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+    }
+    
+    .header p {
+      font-size: 13px;
+      opacity: 0.7;
+      margin: 8px 0 0 0;
+    }
+    
+    .stats {
+      padding: 20px 30px;
+      background-color: #fafafa;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .stat-item {
+      display: inline-block;
+    }
+    
+    .stat-number {
+      font-size: 28px;
+      font-weight: 700;
+      color: #000;
+      margin-right: 8px;
+    }
+    
+    .stat-label {
+      font-size: 14px;
+      color: #666;
+    }
+    
+    .controls {
+      padding: 16px 30px;
+      display: flex;
+      gap: 12px;
+      border-bottom: 1px solid #e0e0e0;
+      background: #fff;
+    }
+    
+    .btn {
+      padding: 8px 16px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 500;
+      background: white;
+      color: #333;
+    }
+    
+    .btn:hover {
+      background-color: #f5f5f5;
+      border-color: #999;
+    }
+    
+    .btn-clear {
+      color: #d32f2f;
+      border-color: #d32f2f;
+    }
+    
+    .btn-clear:hover {
+      background-color: #d32f2f;
+      color: white;
+    }
+    
+    .btn-export {
+      color: #000;
+      border-color: #000;
+    }
+    
+    .btn-export:hover {
+      background-color: #000;
+      color: white;
+    }
+    
+    .word-list {
+      padding: 30px;
+      max-height: calc(100vh - 280px);
+      overflow-y: auto;
+    }
+    
+    .word-item {
+      background-color: #fff;
+      border: 1px solid #e0e0e0;
+      border-left: 3px solid #000;
+      padding: 20px;
+      margin-bottom: 16px;
+      transition: all 0.2s ease;
+    }
+    
+    .word-item:hover {
+      border-left-width: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .word-content {
+      font-size: 15px;
+      line-height: 1.7;
+      color: #000;
+      margin-bottom: 12px;
+    }
+    
+    .word-content .word-header {
+      font-size: 19px;
+      font-weight: 700;
+      color: #000;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e0e0e0;
+      letter-spacing: -0.3px;
+    }
+    
+    .word-content .word-definition {
+      color: #333;
+      margin-top: 8px;
+      line-height: 1.6;
+    }
+    
+    .word-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .btn-remove {
+      background-color: transparent;
+      color: #666;
+      padding: 6px 14px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .btn-remove:hover {
+      background-color: #000;
+      color: white;
+      border-color: #000;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: #999;
+    }
+    
+    .empty-state-icon {
+      font-size: 56px;
+      margin-bottom: 16px;
+    }
+    
+    .empty-state-text {
+      font-size: 16px;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 500;
+    }
+    
+    .empty-state-hint {
+      font-size: 13px;
+      color: #999;
+    }
+    
+    .word-list::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .word-list::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    .word-list::-webkit-scrollbar-thumb {
+      background: #ddd;
+      border-radius: 3px;
+    }
+    
+    .word-list::-webkit-scrollbar-thumb:hover {
+      background: #999;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>⭐ Danh sách từ hay quên</h1>
+      <p>Tổng hợp các từ vựng bạn cần ôn tập thường xuyên</p>
+    </div>
+    
+    <div class="stats">
+      <div class="stat-item">
+        <div class="stat-number" id="totalWords">0</div>
+        <div class="stat-label">Tổng số từ</div>
+      </div>
+    </div>
+    
+    <div class="controls">
+      <button class="btn btn-export" id="exportBtn">📥 Xuất danh sách</button>
+      <button class="btn btn-clear" id="clearBtn">🗑️ Xóa tất cả</button>
+    </div>
+    
+    <div class="word-list" id="wordList">
+      <div class="empty-state">
+        <div class="empty-state-icon">📚</div>
+        <div class="empty-state-text">Chưa có từ nào được đánh dấu</div>
+        <div class="empty-state-hint">Click vào nút ⭐ trên trang web để đánh dấu từ hay quên</div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="forgetful.js"></script>
+</body>
+</html>

@@ -100,6 +100,30 @@
       padding-top: 10px;
       border-top: 1px solid #eee;
     }
+    
+    .view-list-btn {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #FF9800;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .view-list-btn:hover {
+      background-color: #F57C00;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    
+    .view-list-btn:active {
+      transform: translateY(0);
+    }
   </style>
 </head>
 <body>
@@ -120,6 +144,10 @@
   <div class="info">
     Click vào icon 👁️ trên trang web để xem định nghĩa
   </div>
+  
+  <button id="viewForgetfulWords" class="view-list-btn">
+    📝 Xem từ hay quên
+  </button>
   
   <script src="popup.js"></script>
 </body>

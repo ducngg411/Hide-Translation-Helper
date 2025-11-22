@@ -35,11 +35,15 @@ function processDefinitions() {
     const originalContent = div.innerHTML;
     const contentHash = hashContent(originalContent);
     
+    // Tìm thẻ từ vựng (h2) gần nhất phía trên
+    const wordInfo = findNearestWordHeader(div);
+    
     // Tạo container mới
     const container = document.createElement('div');
     container.className = 'translation-container';
     container.style.cssText = div.style.cssText;
     container.dataset.contentHash = contentHash;
+    container.dataset.wordInfo = wordInfo;
     
     // Nút toggle
     const toggleBtn = document.createElement('button');
@@ -85,22 +89,31 @@ function processDefinitions() {
       e.preventDefault();
       e.stopPropagation();
       
-      chrome.storage.sync.get(['forgetfulWords'], function(result) {
+      chrome.storage.sync.get(['forgetfulWords', 'wordContents'], function(result) {
         let forgetfulWords = result.forgetfulWords || [];
+        let wordContents = result.wordContents || {};
         
         if (forgetfulWords.includes(contentHash)) {
           // Bỏ đánh dấu
           forgetfulWords = forgetfulWords.filter(h => h !== contentHash);
+          delete wordContents[contentHash];
           markBtn.classList.remove('marked');
           forgetTag.classList.add('hidden');
         } else {
-          // Đánh dấu
+          // Đánh dấu - kết hợp từ vựng + định nghĩa
           forgetfulWords.push(contentHash);
+          const fullContent = wordInfo 
+            ? `<div class="word-header"><strong>${wordInfo}</strong></div><div class="word-definition">${originalContent}</div>`
+            : originalContent;
+          wordContents[contentHash] = fullContent;
           markBtn.classList.add('marked');
           forgetTag.classList.remove('hidden');
         }
         
-        chrome.storage.sync.set({ forgetfulWords: forgetfulWords });
+        chrome.storage.sync.set({ 
+          forgetfulWords: forgetfulWords,
+          wordContents: wordContents
+        });
       });
     });
     
@@ -131,6 +144,72 @@ function hashContent(content) {
     hash = hash & hash;
   }
   return hash.toString();
+}
+
+// Tìm thẻ h2 chứa từ vựng gần nhất phía trên
+function findNearestWordHeader(element) {
+  let current = element.previousElementSibling;
+  let searchLimit = 20; // Giới hạn tìm kiếm 20 element
+  
+  while (current && searchLimit > 0) {
+    // Tìm h2 có class "h3"
+    if (current.tagName === 'H2' && current.classList.contains('h3')) {
+      return extractWordInfo(current);
+    }
+    
+    // Tìm trong các element cha/anh em
+    const h2 = current.querySelector('h2.h3');
+    if (h2) {
+      return extractWordInfo(h2);
+    }
+    
+    current = current.previousElementSibling;
+    searchLimit--;
+  }
+  
+  return null;
+}
+
+// Trích xuất thông tin từ vựng từ thẻ h2
+function extractWordInfo(h2Element) {
+  try {
+    // Lấy tên từ (text node đầu tiên, loại bỏ khoảng trắng)
+    let word = '';
+    for (let node of h2Element.childNodes) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent.trim();
+        if (text && !text.startsWith('/')) {
+          word = text;
+          break;
+        }
+      }
+    }
+    
+    // Lấy loại từ (v), (n), (adj)...
+    const typeSpan = h2Element.querySelector('span');
+    const wordType = typeSpan ? typeSpan.textContent.trim() : '';
+    
+    // Lấy phát âm /.../ 
+    let pronunciation = '';
+    const spans = h2Element.querySelectorAll('span');
+    for (let span of spans) {
+      const text = span.textContent.trim();
+      if (text.startsWith('/') && text.endsWith('/')) {
+        pronunciation = text;
+        break;
+      }
+    }
+    
+    // Kết hợp: word (type) /pronunciation/
+    let result = word;
+    if (wordType) result += ` ${wordType}`;
+    if (pronunciation) result += ` ${pronunciation}`;
+    
+    return result || null;
+  } catch (e) {
+    console.error('Error extracting word info:', e);
+    return null;
+  }
 }
 
 function removeAllToggles() {

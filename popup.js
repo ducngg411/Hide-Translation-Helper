@@ -32,3 +32,8 @@ function updateStatus(isEnabled) {
     statusDiv.className = 'status disabled';
   }
 }
+
+// Xử lý nút xem từ hay quên
+document.getElementById('viewForgetfulWords').addEventListener('click', function() {
+  chrome.tabs.create({ url: chrome.runtime.getURL('forgetful.html') });
+});
