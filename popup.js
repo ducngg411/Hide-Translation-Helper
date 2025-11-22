@@ -37,3 +37,8 @@ function updateStatus(isEnabled) {
 document.getElementById('viewForgetfulWords').addEventListener('click', function() {
   chrome.tabs.create({ url: chrome.runtime.getURL('forgetful.html') });
 });
+
+// Xử lý nút bắt đầu ôn tập
+document.getElementById('startPractice').addEventListener('click', function() {
+  chrome.tabs.create({ url: chrome.runtime.getURL('practice.html') });
+});

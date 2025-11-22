@@ -124,6 +124,30 @@
     .view-list-btn:active {
       transform: translateY(0);
     }
+    
+    .practice-btn {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .practice-btn:hover {
+      background-color: #45a049;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    
+    .practice-btn:active {
+      transform: translateY(0);
+    }
   </style>
 </head>
 <body>
@@ -147,6 +171,10 @@
   
   <button id="viewForgetfulWords" class="view-list-btn">
     📝 Xem từ hay quên
+  </button>
+  
+  <button id="startPractice" class="practice-btn">
+    🎯 Bắt đầu ôn tập
   </button>
   
   <script src="popup.js"></script>
