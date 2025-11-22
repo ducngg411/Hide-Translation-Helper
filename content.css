@@ -1,0 +1,100 @@
+.translation-container {
+  position: relative;
+  margin-bottom: 0.5rem;
+  padding: 8px;
+  border-left: 3px solid #4CAF50;
+  background-color: #f9f9f9;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.btn-group {
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.toggle-definition-btn {
+  background-color: #4CAF50;
+  border: none;
+  color: white;
+  padding: 6px 10px;
+  text-align: center;
+  text-decoration: none;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  line-height: 1;
+}
+
+.toggle-definition-btn:hover {
+  background-color: #45a049;
+  transform: scale(1.1);
+}
+
+.toggle-definition-btn:active {
+  transform: scale(0.95);
+}
+
+.mark-btn {
+  background-color: #ddd;
+  border: none;
+  color: #666;
+  padding: 6px 10px;
+  text-align: center;
+  text-decoration: none;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  line-height: 1;
+}
+
+.mark-btn:hover {
+  background-color: #ccc;
+  transform: scale(1.1);
+}
+
+.mark-btn.marked {
+  background-color: #FFD700;
+  color: white;
+  animation: pulse 0.5s ease;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+.forget-tag {
+  display: inline-block;
+  background-color: #FF9800;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.forget-tag.hidden {
+  display: none;
+}
+
+.content-part {
+  flex: 1 1 100%;
+  transition: all 0.3s ease;
+  max-height: 1000px;
+  overflow: hidden;
+  opacity: 1;
+}
+
+.content-part.hidden {
+  max-height: 0;
+  opacity: 0;
+  margin: 0;
+  padding: 0;
+}
