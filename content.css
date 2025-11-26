@@ -259,3 +259,173 @@
   color: #4CAF50;
   font-size: 18px;
 }
+
+/* Word Lookup Tooltip */
+.word-tooltip {
+  position: absolute;
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.15);
+  min-width: 320px;
+  max-width: 450px;
+  z-index: 999999;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  animation: tooltipSlideIn 0.2s ease;
+  border: 2px solid #000;
+}
+
+@keyframes tooltipSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.word-tooltip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 2px solid #000;
+  background: #000;
+}
+
+.word-tooltip-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
+  letter-spacing: 0.5px;
+}
+
+.word-tooltip-close {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s;
+}
+
+.word-tooltip-close:hover {
+  opacity: 0.7;
+}
+
+.word-tooltip-body {
+  padding: 16px;
+  max-height: 400px;
+  overflow-y: auto;
+  background: white;
+}
+
+.word-tooltip-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  color: #333;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e0e0e0;
+  border-top: 3px solid #000;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 12px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.word-tooltip-error {
+  padding: 16px;
+  color: #000;
+  text-align: center;
+  line-height: 1.6;
+  background: #f5f5f5;
+  border-left: 3px solid #000;
+}
+
+.word-info-section {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.word-info-section:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.word-meaning {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #000;
+}
+
+.word-type {
+  display: inline-block;
+  background: #000;
+  color: white;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.word-ipa {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.6;
+}
+
+.ipa-variant {
+  display: inline-block;
+  margin-right: 12px;
+  padding: 5px 10px;
+  background: #000;
+  color: white;
+  font-family: 'Arial', 'Segoe UI', sans-serif;
+  font-size: 14px;
+  margin-top: 6px;
+  letter-spacing: 0.3px;
+}
+
+.word-examples {
+  font-size: 14px;
+  color: #333;
+}
+
+.example-item {
+  margin-top: 10px;
+  padding: 10px;
+  background: #f9f9f9;
+  border-left: 2px solid #000;
+}
+
+.example-en {
+  color: #000;
+  font-style: italic;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.example-vi {
+  color: #666;
+  font-size: 13px;
+}

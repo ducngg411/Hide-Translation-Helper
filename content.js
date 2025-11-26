@@ -360,3 +360,224 @@ function handleQuickPracticeInput() {
     feedback.innerHTML = '';
   }
 }
+
+// ============ WORD LOOKUP TOOLTIP ============
+
+let wordTooltip = null;
+let wordCache = {}; // Cache để lưu kết quả tra từ
+let debounceTimer = null;
+
+// Add double-click listener to document
+document.addEventListener('dblclick', function(e) {
+  const selection = window.getSelection();
+  const selectedText = selection.toString().trim();
+  
+  // Only process if it's a single word (no spaces) and English letters
+  if (selectedText && /^[a-zA-Z]+$/.test(selectedText)) {
+    // Debounce để tránh spam requests
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+    
+    debounceTimer = setTimeout(() => {
+      const range = selection.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
+      showWordTooltip(selectedText.toLowerCase(), rect);
+    }, 300);
+  }
+});
+
+function showWordTooltip(word, rect) {
+  // Close existing tooltip
+  closeWordTooltip();
+  
+  // Create tooltip
+  wordTooltip = document.createElement('div');
+  wordTooltip.id = 'word-lookup-tooltip';
+  wordTooltip.className = 'word-tooltip';
+  wordTooltip.innerHTML = `
+    <div class="word-tooltip-header">
+      <span class="word-tooltip-title">🔍 ${word}</span>
+      <button class="word-tooltip-close">✕</button>
+    </div>
+    <div class="word-tooltip-body">
+      <div class="word-tooltip-loading">
+        <div class="spinner"></div>
+        <div>Đang tra cứu...</div>
+      </div>
+    </div>
+  `;
+  
+  // Position tooltip near the selected word
+  const scrollY = window.scrollY || window.pageYOffset;
+  const scrollX = window.scrollX || window.pageXOffset;
+  
+  wordTooltip.style.position = 'absolute';
+  wordTooltip.style.left = (rect.left + scrollX) + 'px';
+  wordTooltip.style.top = (rect.bottom + scrollY + 10) + 'px';
+  
+  document.body.appendChild(wordTooltip);
+  
+  // Close button
+  wordTooltip.querySelector('.word-tooltip-close').addEventListener('click', closeWordTooltip);
+  
+  // Click outside to close
+  setTimeout(() => {
+    document.addEventListener('click', handleOutsideClick);
+  }, 100);
+  
+  // Fetch word information
+  fetchWordInfo(word);
+}
+
+function handleOutsideClick(e) {
+  if (wordTooltip && !wordTooltip.contains(e.target)) {
+    closeWordTooltip();
+  }
+}
+
+function closeWordTooltip() {
+  if (wordTooltip) {
+    wordTooltip.remove();
+    wordTooltip = null;
+    document.removeEventListener('click', handleOutsideClick);
+  }
+}
+
+function fetchWordInfo(word) {
+  const normalizedWord = word.toLowerCase();
+  
+  // Check cache first
+  if (wordCache[normalizedWord]) {
+    displayWordInfo(wordCache[normalizedWord]);
+    return;
+  }
+  
+  // Send message to background script
+  chrome.runtime.sendMessage(
+    { action: 'lookupWord', word: word },
+    function(response) {
+      if (!wordTooltip) return; // Tooltip was closed
+      
+      if (response.error) {
+        displayError(response.error);
+        return;
+      }
+      
+      // Cache the result
+      wordCache[normalizedWord] = response;
+      displayWordInfo(response);
+    }
+  );
+}
+
+function displayError(errorMessage) {
+  if (!wordTooltip) return;
+  
+  const body = wordTooltip.querySelector('.word-tooltip-body');
+  
+  let errorHTML = `<div class="word-tooltip-error">❌ ${errorMessage}</div>`;
+  
+  // Thêm gợi ý nếu là lỗi rate limit
+  if (errorMessage.includes('429')) {
+    errorHTML = `
+      <div class="word-tooltip-error">
+        <div style="font-size: 16px; margin-bottom: 10px;">⚠️ Quá nhiều yêu cầu</div>
+        <div style="font-size: 13px; line-height: 1.6;">
+          Gemini API free tier có giới hạn số lượng requests.<br><br>
+          <strong>Giải pháp:</strong><br>
+          • Chờ 1-2 phút rồi thử lại<br>
+          • Hoặc nâng cấp API key lên paid tier<br>
+          • Kết quả đã tra sẽ được lưu cache
+        </div>
+      </div>
+    `;
+  } else if (errorMessage.includes('API key')) {
+    errorHTML = `
+      <div class="word-tooltip-error">
+        <div style="font-size: 16px; margin-bottom: 10px;">🔑 Chưa có API key</div>
+        <div style="font-size: 13px; line-height: 1.6;">
+          Vui lòng vào <strong>⚙️ Cài đặt API</strong> trong popup<br>
+          để thêm Gemini API key của bạn.
+        </div>
+      </div>
+    `;
+  }
+  
+  body.innerHTML = errorHTML;
+}
+
+function displayWordInfo(response) {
+  if (!wordTooltip) return;
+  
+  const body = wordTooltip.querySelector('.word-tooltip-body');
+  
+  // Build content HTML
+  let contentHTML = `
+        <div class="word-info-section">
+          <div class="word-meaning">
+            ${response.type ? `<span class="word-type">${response.type}</span> ` : ''}
+            ${response.meaning}
+          </div>
+        </div>
+      `;
+      
+      // IPA
+      if (response.ipa) {
+        contentHTML += `
+          <div class="word-info-section">
+            <div class="word-ipa">
+              <strong>🔊 Phát âm:</strong><br>
+        `;
+        if (response.ipa.uk) {
+          contentHTML += `<span class="ipa-variant">UK: ${response.ipa.uk}</span>`;
+        }
+        if (response.ipa.us) {
+          contentHTML += `<span class="ipa-variant">US: ${response.ipa.us}</span>`;
+        }
+        contentHTML += `</div></div>`;
+      }
+      
+      // Examples
+      if (response.examples && response.examples.length > 0) {
+        contentHTML += `
+          <div class="word-info-section">
+            <div class="word-examples">
+              <strong>💡 Ví dụ:</strong>
+        `;
+        response.examples.forEach(ex => {
+          contentHTML += `
+            <div class="example-item">
+              <div class="example-en">${ex.en}</div>
+              <div class="example-vi">${ex.vi}</div>
+            </div>
+          `;
+        });
+        contentHTML += `</div></div>`;
+      }
+      
+  body.innerHTML = contentHTML;
+  
+  // Adjust position if tooltip goes off-screen
+  adjustTooltipPosition();
+}
+
+function adjustTooltipPosition() {
+  if (!wordTooltip) return;
+  
+  const rect = wordTooltip.getBoundingClientRect();
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  
+  // If tooltip goes beyond right edge
+  if (rect.right > viewportWidth) {
+    const currentLeft = parseInt(wordTooltip.style.left);
+    wordTooltip.style.left = (currentLeft - (rect.right - viewportWidth) - 20) + 'px';
+  }
+  
+  // If tooltip goes beyond bottom edge
+  if (rect.bottom > viewportHeight) {
+    const currentTop = parseInt(wordTooltip.style.top);
+    wordTooltip.style.top = (currentTop - rect.height - 40) + 'px';
+  }
+}

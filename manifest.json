@@ -1,15 +1,22 @@
 {
   "manifest_version": 3,
   "name": "Hide Translation Helper",
-  "version": "1.0",
+  "version": "1.1",
   "description": "Ẩn định nghĩa tiếng Anh để học từ vựng hiệu quả hơn",
   "permissions": [
     "storage",
     "activeTab"
   ],
+  "host_permissions": [
+    "https://generativelanguage.googleapis.com/*"
+  ],
   "action": {
     "default_popup": "popup.html"
   },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "options_page": "options.html",
   "content_scripts": [
     {
       "matches": ["<all_urls>"],

@@ -47,3 +47,8 @@ document.getElementById('startPractice').addEventListener('click', function() {
 document.getElementById('manageSets').addEventListener('click', function() {
   chrome.tabs.create({ url: chrome.runtime.getURL('wordsets.html') });
 });
+
+// Xử lý nút cài đặt
+document.getElementById('openOptions').addEventListener('click', function() {
+  chrome.runtime.openOptionsPage();
+});
