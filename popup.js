@@ -42,3 +42,8 @@ document.getElementById('viewForgetfulWords').addEventListener('click', function
 document.getElementById('startPractice').addEventListener('click', function() {
   chrome.tabs.create({ url: chrome.runtime.getURL('practice.html') });
 });
+
+// Xử lý nút quản lý bộ từ
+document.getElementById('manageSets').addEventListener('click', function() {
+  chrome.tabs.create({ url: chrome.runtime.getURL('wordsets.html') });
+});

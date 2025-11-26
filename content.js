@@ -57,6 +57,12 @@ function processDefinitions() {
     markBtn.innerHTML = '⭐';
     markBtn.title = 'Đánh dấu hay quên';
     
+    // Nút Quick Practice
+    const quickPracticeBtn = document.createElement('button');
+    quickPracticeBtn.className = 'quick-practice-btn';
+    quickPracticeBtn.innerHTML = '⚡';
+    quickPracticeBtn.title = 'Luyện tập nhanh';
+    
     // Tag "hay quên"
     const forgetTag = document.createElement('span');
     forgetTag.className = 'forget-tag hidden';
@@ -89,14 +95,16 @@ function processDefinitions() {
       e.preventDefault();
       e.stopPropagation();
       
-      chrome.storage.sync.get(['forgetfulWords', 'wordContents'], function(result) {
+      chrome.storage.sync.get(['forgetfulWords', 'wordContents', 'wordTimestamps'], function(result) {
         let forgetfulWords = result.forgetfulWords || [];
         let wordContents = result.wordContents || {};
+        let wordTimestamps = result.wordTimestamps || {};
         
         if (forgetfulWords.includes(contentHash)) {
           // Bỏ đánh dấu
           forgetfulWords = forgetfulWords.filter(h => h !== contentHash);
           delete wordContents[contentHash];
+          delete wordTimestamps[contentHash];
           markBtn.classList.remove('marked');
           forgetTag.classList.add('hidden');
         } else {
@@ -106,15 +114,24 @@ function processDefinitions() {
             ? `<div class="word-header"><strong>${wordInfo}</strong></div><div class="word-definition">${originalContent}</div>`
             : originalContent;
           wordContents[contentHash] = fullContent;
+          wordTimestamps[contentHash] = new Date().toISOString();
           markBtn.classList.add('marked');
           forgetTag.classList.remove('hidden');
         }
         
         chrome.storage.sync.set({ 
           forgetfulWords: forgetfulWords,
-          wordContents: wordContents
+          wordContents: wordContents,
+          wordTimestamps: wordTimestamps
         });
       });
+    });
+    
+    // Xử lý sự kiện Quick Practice
+    quickPracticeBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      openQuickPracticeModal(originalContent, wordInfo);
     });
     
     // Tạo button group
@@ -122,6 +139,7 @@ function processDefinitions() {
     btnGroup.className = 'btn-group';
     btnGroup.appendChild(toggleBtn);
     btnGroup.appendChild(markBtn);
+    btnGroup.appendChild(quickPracticeBtn);
     
     // Thêm các phần tử vào container
     container.appendChild(btnGroup);
@@ -237,3 +255,108 @@ observer.observe(document.body, {
   childList: true,
   subtree: true
 });
+
+// Mở modal Quick Practice
+function openQuickPracticeModal(definition, wordInfo) {
+  // Tạo modal nếu chưa có
+  let modal = document.getElementById('quick-practice-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'quick-practice-modal';
+    modal.className = 'quick-practice-modal';
+    modal.innerHTML = `
+      <div class="quick-practice-overlay"></div>
+      <div class="quick-practice-content">
+        <button class="quick-practice-close">✕</button>
+        <div class="quick-practice-header">⚡ Luyện tập nhanh</div>
+        <div class="quick-practice-definition" id="qp-definition"></div>
+        <input 
+          type="text" 
+          class="quick-practice-input" 
+          id="qp-input" 
+          placeholder="Gõ từ vựng..."
+          autocomplete="off"
+          spellcheck="false"
+        >
+        <div class="quick-practice-feedback" id="qp-feedback"></div>
+        <div class="quick-practice-stats" id="qp-stats">Số lần đúng: <span id="qp-count">0</span></div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    
+    // Event listeners
+    modal.querySelector('.quick-practice-close').addEventListener('click', closeQuickPracticeModal);
+    modal.querySelector('.quick-practice-overlay').addEventListener('click', closeQuickPracticeModal);
+    
+    const input = modal.querySelector('#qp-input');
+    input.addEventListener('input', handleQuickPracticeInput);
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeQuickPracticeModal();
+      }
+    });
+  }
+  
+  // Parse word info
+  let targetWord = '';
+  if (wordInfo) {
+    targetWord = wordInfo.split(/[\(\/]/)[0].trim();
+  } else {
+    // Extract từ definition nếu không có wordInfo
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = definition;
+    const text = tempDiv.textContent.trim();
+    targetWord = text.split(/[\(\/=]/)[0].trim();
+  }
+  
+  // Set data
+  modal.dataset.targetWord = targetWord;
+  modal.dataset.correctCount = '0';
+  modal.querySelector('#qp-definition').innerHTML = definition;
+  modal.querySelector('#qp-input').value = '';
+  modal.querySelector('#qp-input').className = 'quick-practice-input';
+  modal.querySelector('#qp-feedback').innerHTML = '';
+  modal.querySelector('#qp-count').textContent = '0';
+  
+  // Show modal
+  modal.style.display = 'flex';
+  setTimeout(() => modal.querySelector('#qp-input').focus(), 100);
+}
+
+function closeQuickPracticeModal() {
+  const modal = document.getElementById('quick-practice-modal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+}
+
+function handleQuickPracticeInput() {
+  const modal = document.getElementById('quick-practice-modal');
+  const input = this;
+  const userInput = input.value.trim();
+  const targetWord = modal.dataset.targetWord;
+  const feedback = modal.querySelector('#qp-feedback');
+  
+  if (userInput.toLowerCase() === targetWord.toLowerCase()) {
+    input.className = 'quick-practice-input correct';
+    
+    // Tăng số lần đúng
+    let count = parseInt(modal.dataset.correctCount) || 0;
+    count++;
+    modal.dataset.correctCount = count;
+    modal.querySelector('#qp-count').textContent = count;
+    
+    feedback.innerHTML = '<div class="qp-correct">✓ Chính xác! Tiếp tục luyện tập...</div>';
+    
+    // Reset sau 1s
+    setTimeout(() => {
+      input.value = '';
+      input.className = 'quick-practice-input';
+      feedback.innerHTML = '';
+      input.focus();
+    }, 1000);
+  } else if (userInput.length > 0) {
+    input.className = 'quick-practice-input';
+    feedback.innerHTML = '';
+  }
+}
